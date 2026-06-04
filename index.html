@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Money Map - Navigate Your Finances</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <!-- NAV -->
+  <nav class="nav">
+    <div class="nav-brand">
+      <span class="wordmark">Money Map</span>
+      <span class="sub">Navigating Finances</span>
+    </div>
+    <div class="nav-actions">
+      <button class="nav-btn" onclick="openModal('expenses')">Add Expense</button>
+      <button class="nav-btn accent" onclick="openModal('sales')">Add Sale</button>
+      <button class="nav-btn outline" onclick="openModal('profile')">Profile</button>
+    </div>
+  </nav>
+
+  <!-- Hero metrics -->
+  <section id="hero">
+    <div class="sec1">
+      <div class="section-title">A dashboard designed for smarter financial decisions.</div>
+      <div class="section-sub" style="text-align:center;margin:10px;">Here's your financial snapshot for this month.</div>
+    </div>
+    <div class="hero-grid">
+      <!-- Total Spent -->
+      <div class="metric-card" id="card-spent">
+        <div class="label">Total Expenses</div>
+        <div class="value" id="db-spent">0</div>
+        <div class="progress-bar-wrap">
+          <div class="progress-bar" id="prog-bar" style="width:0%"></div>
+        </div>
+        <div class="sub-info" id="db-txn-exp"><span id="db-txn">0</span> transactions</div>
+      </div>
+      <!-- Total Sales -->
+      <div class="metric-card sales-card" id="card-sales">
+        <div class="label">Total Sales</div>
+        <div class="value sales-val" id="db-sales">0</div>
+        <div class="progress-bar-wrap">
+          <div class="progress-bar sales-bar" id="sales-bar" style="width:0%"></div>
+        </div>
+        <div class="sub-info"><span id="db-txn-sale">0</span> transactions · Avg <span id="db-avg-sale">0</span></div>
+      </div>
+      <!-- Profit -->
+      <div class="metric-card" id="card-profit">
+        <div class="label">Net Profit</div>
+        <div class="value" id="db-profit">0</div>
+        <div class="profit-badge" id="profit-badge">—</div>
+        <div class="sub-info" id="profit-sub">Sales minus Expenses</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Recent Expenses -->
+  <section class="section">
+    <div class="section-header">
+      <div class="section-title sm" style="font-size:x-large">Recent Expenses</div>
+      <button class="link-btn" onclick="openModal('expenses')">View all →</button>
+    </div>
+    <div id="recent-list"></div>
+  </section>
+
+  <!-- Recent Sales -->
+  <section class="section">
+    <div class="section-header">
+      <div class="section-title sm" style="font-size:x-large">Recent Sales</div>
+      <button class="link-btn sales-link" onclick="openModal('sales')">View all →</button>
+    </div>
+    <div id="recent-sales-list"></div>
+  </section>
+
+  <!-- Analytics -->
+  <section class="section" id="analytics-section">
+    <div class="section-header">
+      <div class="section-title sm" style="font-size:x-large">Analytics</div>
+      <div class="section-sub">Spending, sales &amp; profit trends</div>
+    </div>
+
+    <div class="cat-grid" id="cat-grid"></div>
+
+    <div class="charts-row">
+      <div class="chart-container">
+        <div class="chart-title">Expenses vs Sales by Category</div>
+        <div style="position:relative;height:240px;">
+          <canvas id="catChart" role="img" aria-label="Bar chart of expenses vs sales by category"></canvas>
+        </div>
+      </div>
+      <div class="chart-container">
+        <div class="chart-title">Daily Trends — Last 14 Days</div>
+        <div style="position:relative;height:240px;">
+          <canvas id="trendChart" role="img" aria-label="Line chart of daily expenses and sales"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <!-- Yearly Profit/Loss chart -->
+    <div class="chart-container chart-full" style="margin-top:14px;">
+      <div class="chart-title">Monthly Profit &amp; Sales — This Year</div>
+      <div style="position:relative;height:280px;">
+        <canvas id="yearlyChart" role="img" aria-label="Yearly monthly profit and sales chart"></canvas>
+      </div>
+    </div>
+  </section>
+
+  <!-- Modal: Expenses -->
+  <div class="modal-backdrop" id="modal-expenses" onclick="backdropClose(event,'modal-expenses')">
+    <div class="modal-box">
+      <div class="modal-head">
+        <div>
+          <div class="modal-title">Expenses</div>
+          <div class="modal-sub">Log and manage all your spending entries.</div>
+        </div>
+        <button class="modal-close" onclick="closeModal('modal-expenses')">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="expense-form">
+          <div class="form-row">
+            <div class="form-group">
+              <label>Expense Name</label>
+              <input type="text" id="expName" placeholder="e.g. Cloth" />
+            </div>
+            <div class="form-group">
+              <label>Amount</label>
+              <input type="number" id="expAmount" placeholder="0.00" min="0" step="0.01" />
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label>Category</label>
+              <select id="expCat">
+                <option value="Food">Raw Material</option>
+                <option value="Health">Jewellery Purchase</option>
+                <option value="Transport">Labour</option>
+                <option value="Shopping">Shipping</option>
+                <option value="Health">Travel</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Date</label>
+              <input type="date" id="expDate" />
+            </div>
+          </div>
+          <div class="form-group" style="margin-bottom:14px;">
+            <label>Note (optional)</label>
+            <textarea id="expNote" placeholder="Any details..."></textarea>
+          </div>
+          <button class="btn primary full-width" onclick="addExpense()">Add Expense</button>
+        </div>
+        <div class="filter-row">
+          <button class="filter-chip active" onclick="setFilter('All',this,'exp')">All</button>
+          <button class="filter-chip" onclick="setFilter('Food',this,'exp')">Raw Material</button>
+          <button class="filter-chip" onclick="setFilter('Transport',this,'exp')">Jewellery Purchase</button>
+          <button class="filter-chip" onclick="setFilter('Shopping',this,'exp')">Labour</button>
+          <button class="filter-chip" onclick="setFilter('Health',this,'exp')">Shipping</button>
+          <button class="filter-chip" onclick="setFilter('Entertainment',this,'exp')">Travel</button>
+        </div>
+        <div class="expense-list" id="expense-list"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: Sales -->
+  <div class="modal-backdrop" id="modal-sales" onclick="backdropClose(event,'modal-sales')">
+    <div class="modal-box">
+      <div class="modal-head">
+        <div>
+          <div class="modal-title">Sales</div>
+          <div class="modal-sub">Log and manage all your revenue entries.</div>
+        </div>
+        <button class="modal-close" onclick="closeModal('modal-sales')">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="expense-form sales-form">
+          <div class="form-row">
+            <div class="form-group">
+              <label>Sale Name</label>
+              <input type="text" id="saleName" placeholder="e.g. Product sale" />
+            </div>
+            <div class="form-group">
+              <label>Amount</label>
+              <input type="number" id="saleAmount" placeholder="0.00" min="0" step="0.01" />
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label>Category</label>
+              <select id="saleCat">
+                <option value="Product">Dresses</option>
+                <option value="Service">Jewellery</option>
+                <option value="Subscription">Custom Order</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Date</label>
+              <input type="date" id="saleDate" />
+            </div>
+          </div>
+          <div class="form-group" style="margin-bottom:14px;">
+            <label>Note (optional)</label>
+            <textarea id="saleNote" placeholder="Any details..."></textarea>
+          </div>
+          <button class="btn sales-btn full-width" onclick="addSale()">Add Sale</button>
+        </div>
+        <div class="filter-row">
+          <button class="filter-chip active" onclick="setFilter('All',this,'sale')">All</button>
+          <button class="filter-chip" onclick="setFilter('Product',this,'sale')">Dresses</button>
+          <button class="filter-chip" onclick="setFilter('Service',this,'sale')">Jewellery</button>
+          <button class="filter-chip" onclick="setFilter('Subscription',this,'sale')">Custom Order</button>
+        </div>
+        <div class="expense-list" id="sale-list"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: Profile -->
+  <div class="modal-backdrop" id="modal-profile" onclick="backdropClose(event,'modal-profile')">
+    <div class="modal-box modal-sm">
+      <div class="modal-head">
+        <div>
+          <div class="modal-title">Profile &amp; Insights</div>
+          <div class="modal-sub">Your financial health overview.</div>
+        </div>
+        <button class="modal-close" onclick="closeModal('modal-profile')">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="stat-row" id="stat-row"></div>
+        <div id="alerts-section"></div>
+        <div class="profile-card">
+          <div style="font-size:14px;font-weight:500;margin-bottom:14px;">Data Management</div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;">
+            <button class="btn" onclick="exportData()">Export CSV</button>
+            <button class="btn danger" onclick="clearAll()">Clear All Data</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="toast" class="toast"></div>
+
+  <footer>
+    <p>&copy; 2026 Money Map. All rights reserved.</p>
+  </footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+  <script src="db.js"></script>
+  <script src="script.js"></script>
+</body>
+</html>
